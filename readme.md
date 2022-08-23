@@ -38,4 +38,15 @@ pip install requirements.txt
 uvicorn main:app --reload
 ```
 
+## Swagger Documentation for APIs
+
+The project wil have their endpoints through which all the functionalities will work.
+
+```shell
+http://localhost:8000/docs
+```
+
+
+
+
 
