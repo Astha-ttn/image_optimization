@@ -63,41 +63,47 @@ async def resize_image(repo_name: str, dimension: str, image_url: str, settings:
     # DEBUG - inputs recieved
     logger.info("URL: " + image_url + ", NS: " + repo_name + ", dimentions: " + dimension)
 
-    # Look up the source image
-    # image_url_hash_key=hash(image_url)
-    # if image_url_hash_key not in img_cache.keys():
-    # get the image from the URL - this will create a local copy of the image for further process
-    res = requests.get(image_url, stream=True)
-    # check if URL was successful
-    if res.status_code == 200:
-        # TODO check if the image URL is already present in the cache by the {repo_name}
-        # TODO image should be downloaded only if the source URL isn't in the cache
+    size = (int(dimension.split(",")[0].lstrip("h")), int(dimension.split(",")[1].lstrip("w")))
+    resized_image_name = image_file_name + "_" + str(size[0]) + "_" + str(size[1]) + "." + image_file_ext
 
-        # download the image from source URL
-        with open(os.path.join(path, image_file_name_full), "wb") as f:
-            shutil.copyfileobj(res.raw, f)
-            # TODO add this image to cache with the Image URL for future use
-            logger.info(str(res.status_code) + " :Image Successfully Saved: " + image_file_name_full)
-            # img_cache[image_url_hash_key] = f
-            # required dimentions
-            size = (int(dimension.split(",")[0].lstrip("h")), int(dimension.split(",")[1].lstrip("w")))
-            # check if this image is present in cache for the required size.
-            # image should be resized only if it is not present in cache
-            # FIXME check implementation of AWS cache instead of dist()
-            # image_url_size_hash_key = hash(image_url+size)
-            # print(image_url_size_hash_key)
-            # if image_url_size_hash_key not in img_cache.keys():
-            # create an Image object
-            im = Image.open(os.path.join(path,image_file_name_full))
-            im.thumbnail(size, Image.ANTIALIAS)
-            resized_image_name = image_file_name + "_" + str(size[0]) + "_" + str(size[1]) + "." + image_file_ext
-
-            # FIXME the image compression is not happening - this needs to be fixed
-            im.save(os.path.join(path,image_file_name_full), optimize=True)  # TODO save this image to cache under {repo_name}
-
-            # else:
-            logger.info(str(res.status_code) + " :Image Couldn't be retrieved")
-            # FIXME the rendering is not optimzed yet - this needs to be fixed
-            return FileResponse(os.path.join(path, resized_image_name))
+    if os.path.isfile(os.path.join(path, resized_image_name)):
+        logger.info("Image Already exist: " + image_file_name_full)
+        return FileResponse(os.path.join(path, resized_image_name))
     else:
-        return {'error': 'error occurred'}
+        # Look up the source image
+        # image_url_hash_key=hash(image_url)
+        # if image_url_hash_key not in img_cache.keys():
+        # get the image from the URL - this will create a local copy of the image for further process
+        res = requests.get(image_url, stream=True)
+        # check if URL was successful
+        if res.status_code == 200:
+            # TODO check if the image URL is already present in the cache by the {repo_name}
+            # TODO image should be downloaded only if the source URL isn't in the cache
+            # required dimensions
+            # download the image from source URL
+            with open(os.path.join(path, image_file_name_full), "wb") as f:
+                shutil.copyfileobj(res.raw, f)
+                # TODO add this image to cache with the Image URL for future use
+                logger.info(str(res.status_code) + " :Image Successfully Saved: " + image_file_name_full)
+                # img_cache[image_url_hash_key] = f
+
+                # check if this image is present in cache for the required size.
+                # image should be resized only if it is not present in cache
+                # FIXME check implementation of AWS cache instead of dist()
+                # image_url_size_hash_key = hash(image_url+size)
+                # print(image_url_size_hash_key)
+                # if image_url_size_hash_key not in img_cache.keys():
+                # create an Image object
+                im = Image.open(os.path.join(path,image_file_name_full))
+                im.thumbnail(size, Image.ANTIALIAS)
+
+
+                # FIXME the image compression is not happening - this needs to be fixed
+                im.save(os.path.join(path,image_file_name_full), optimize=True)  # TODO save this image to cache under {repo_name}
+
+                # else:
+                logger.info(str(res.status_code) + " :Image Couldn't be retrieved")
+                # FIXME the rendering is not optimzed yet - this needs to be fixed
+                return FileResponse(os.path.join(path, resized_image_name))
+        else:
+            return {'error': 'error occurred'}
