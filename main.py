@@ -65,7 +65,6 @@ async def resize_image(repo_name: str, dimension: str, image_url: str, settings:
 
     size = (int(dimension.split(",")[0].lstrip("h")), int(dimension.split(",")[1].lstrip("w")))
     resized_image_name = image_file_name + "_" + str(size[0]) + "_" + str(size[1]) + "." + image_file_ext
-
     if os.path.isfile(os.path.join(path, resized_image_name)):
         logger.info("Image Already exist: " + image_file_name_full)
         return FileResponse(os.path.join(path, resized_image_name))
@@ -96,12 +95,9 @@ async def resize_image(repo_name: str, dimension: str, image_url: str, settings:
                 # create an Image object
                 im = Image.open(os.path.join(path,image_file_name_full))
                 im.thumbnail(size, Image.ANTIALIAS)
-
-
                 # FIXME the image compression is not happening - this needs to be fixed
-                im.save(os.path.join(path,image_file_name_full), optimize=True)  # TODO save this image to cache under {repo_name}
+                im.save(os.path.join(path, resized_image_name), optimize=True)  # TODO save this image to cache under {repo_name}
 
-                # else:
                 logger.info(str(res.status_code) + " :Image Couldn't be retrieved")
                 # FIXME the rendering is not optimzed yet - this needs to be fixed
                 return FileResponse(os.path.join(path, resized_image_name))
